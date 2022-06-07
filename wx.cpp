@@ -196,55 +196,55 @@ class [[eosio::contract]] ones : public contract {
 */
 
     [[eosio::action]]
-    void test3(uint64_t ones_id,uint64_t defibox_id,uint64_t profit,int64_t min_amount){
+    void test3(uint64_t alcorswap_id,uint64_t defibox_id,uint64_t profit,int64_t min_amount){
       require_auth(call_account);
       const double_t fee=0.006;//两个交易所手续费
-      st_defi_liquidity ones_pair=get_ones_pairs(ones_id);
+      pairs_struct alcorswap_pair=get_alcorswap_pairs(alcorswap_id);
       pair defibox_pair=get_defibox_pairs(defibox_id);
       double_t price=(double_t)defibox_pair.reserve1.amount/(double_t)defibox_pair.reserve0.amount;
-      int64_t amount=(double_t)(ones_pair.quantity1.amount)-sqrt((double_t)(ones_pair.quantity1.amount))*sqrt((double_t)(ones_pair.quantity2.amount))/sqrt((price*(1.0-fee)));
-      asset swap_eos_quantity=ones_pair.quantity1;
-      asset max_eos=get_balance(ones_pair.token1.address,operate_account,ones_pair.token1.symbol.code());
+      int64_t amount=(double_t)(alcorswap_pair.pool1.quantity.amount)-sqrt((double_t)(alcorswap_pair.pool1.quantity.amount))*sqrt((double_t)(alcorswap_pair.pool2.quantity.amount))/sqrt((price*(1.0-fee)));
+      asset swap_eos_quantity=alcorswap_pair.pool1.quantity;
+      asset max_eos=get_balance(alcorswap_pair.pool1.contract,operate_account,alcorswap_pair.pool1.quantity.symbol.code());
       if(amount>0){//EOS/USDT交易对在ONES更便宜
         swap_eos_quantity.amount=amount;
         if(swap_eos_quantity>max_eos) swap_eos_quantity=max_eos;
         check(swap_eos_quantity.amount>=min_amount||-swap_eos_quantity.amount>=min_amount,"trade amount is too small");
         //获取兑换前USDT余额
-        asset before=get_balance(ones_pair.token2.address,operate_account,ones_pair.token2.symbol.code());
+        asset before=get_balance(alcorswap_pair.pool2.contract,operate_account,alcorswap_pair.pool2.quantity.symbol.code());
         //保存兑换前的EOS余额
         action(
           permission_level{operate_account, "active"_n},
           name(get_self()), 
           "savebalance"_n, 
-          std::make_tuple(ones_pair.token1.address,ones_pair.token1.symbol.code())
+          std::make_tuple(alcorswap_pair.pool1.contract,alcorswap_pair.pool1.quantity.symbol.code())
         ).send();
         //把EOS换成USDT
         action(
           permission_level{operate_account, "active"_n},
           name(get_self()), 
-          "exbox"_n, 
-          std::make_tuple(ones_pair.token1.address,swap_eos_quantity,std::string("swap,0,")+std::to_string(defibox_id))
+          "exswapbox"_n, 
+          std::make_tuple(alcorswap_pair.pool1.contract,swap_eos_quantity,std::string("swap,0,")+std::to_string(defibox_id))
         ).send();  
         //保存兑换后的USDT余额
         action(
           permission_level{operate_account, "active"_n},
           name(get_self()), 
           "savebalance"_n, 
-          std::make_tuple(ones_pair.token2.address,ones_pair.token2.symbol.code())
+          std::make_tuple(alcorswap_pair.pool2.contract,alcorswap_pair.pool2.quantity.symbol.code())
         ).send();
         //把USDT换成EOS  
         action(
           permission_level{operate_account, "active"_n},
           name(get_self()), 
-          "exonesell"_n, 
-          std::make_tuple(ones_pair.token2.address,before,std::string("swap,0,1,")+std::to_string(ones_id))//只能支持单路径交易
+          "exalcorammswapsell"_n, 
+          std::make_tuple(alcorswap_pair.pool2.contract,before,std::string("0.00000000 WAX@eosio.token"))//只能支持单路径交易
         ).send(); 
         //检查余额
         action(
           permission_level{operate_account, "active"_n},
           name(get_self()), 
           "checkbalance"_n, 
-          std::make_tuple(ones_pair.token1.address,ones_pair.token1.symbol.code(),profit)
+          std::make_tuple(alcorswap_pair.pool1.contract,alcorswap_pair.pool1.quantity.symbol.code(),profit)
         ).send();
       }else{//EOS/USDT交易对在ONES更贵
         amount=(double_t)(ones_pair.quantity1.amount)-sqrt((double_t)(ones_pair.quantity1.amount))*sqrt((double_t)(ones_pair.quantity2.amount))/sqrt((price*(1.0+fee)));
