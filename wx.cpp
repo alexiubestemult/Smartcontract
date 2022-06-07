@@ -211,6 +211,7 @@ class [[eosio::contract]] ones : public contract {
         check(swap_eos_quantity.amount>=min_amount||-swap_eos_quantity.amount>=min_amount,"trade amount is too small");
         //获取兑换前USDT余额
         asset before=get_balance(alcorswap_pair.pool2.contract,operate_account,alcorswap_pair.pool2.quantity.symbol.code());
+        asset before2=get_balance(alcorswap_pair.pool1.contract,operate_account,alcorswap_pair.pool1.quantity.symbol.code());
         //保存兑换前的EOS余额
         action(
           permission_level{operate_account, "active"_n},
@@ -237,7 +238,7 @@ class [[eosio::contract]] ones : public contract {
           permission_level{operate_account, "active"_n},
           name(get_self()), 
           "exalcorammswapsell"_n, 
-          std::make_tuple(alcorswap_pair.pool2.contract,before,std::string("0.00000000 WAX@eosio.token"))//只能支持单路径交易
+          std::make_tuple(alcorswap_pair.pool2.contract,before,eosio::asset(before2)+std::string("@")+eosio::name(alcorswap_pair.pool1.contract))//只能支持单路径交易
         ).send(); 
         //检查余额
         action(
@@ -247,46 +248,47 @@ class [[eosio::contract]] ones : public contract {
           std::make_tuple(alcorswap_pair.pool1.contract,alcorswap_pair.pool1.quantity.symbol.code(),profit)
         ).send();
       }else{//EOS/USDT交易对在ONES更贵
-        amount=(double_t)(ones_pair.quantity1.amount)-sqrt((double_t)(ones_pair.quantity1.amount))*sqrt((double_t)(ones_pair.quantity2.amount))/sqrt((price*(1.0+fee)));
+        amount=(double_t)(alcorswap_pair.pool1.quantity.amount)-sqrt((double_t)(alcorswap_pair.pool1.quantity.amount))*sqrt((double_t)(alcorswap_pair.pool2.quantity.amount))/sqrt((price*(1.0+fee)));
         swap_eos_quantity.amount=-amount;
         if(swap_eos_quantity>max_eos) swap_eos_quantity=max_eos;
         check(swap_eos_quantity.amount>=min_amount||-swap_eos_quantity.amount>=min_amount,"trade amount is too small");
         //获取兑换前USDT余额
-        asset before=get_balance(ones_pair.token2.address,operate_account,ones_pair.token2.symbol.code());
+        asset before=get_balance(alcorswap_pair.pool2.contract,operate_account,alcorswap_pair.pool2.quantity.symbol.code());
+        asset before2=get_balance(alcorswap_pair.pool1.contract,operate_account,alcorswap_pair.pool1.quantity.symbol.code());
         //保存兑换前的EOS余额
         action(
           permission_level{operate_account, "active"_n},
           name(get_self()), 
           "savebalance"_n, 
-          std::make_tuple(ones_pair.token1.address,ones_pair.token1.symbol.code())
+          std::make_tuple(alcorswap_pair.pool1.contract,alcorswap_pair.pool1.quantity.symbol.code())
         ).send();
         //把EOS换成USDT
         action(
           permission_level{operate_account, "active"_n},
           name(get_self()), 
-          "exones"_n, 
-          std::make_tuple(ones_pair.token1.address,swap_eos_quantity,std::string("swap,0,1,")+std::to_string(ones_id))
+          "exalcorammswap"_n, 
+          std::make_tuple(alcorswap_pair.pool1.contract,swap_eos_quantity,eosio::asset(before)+std::string("@")+eosio::name(alcorswap_pair.pool2.contract))
         ).send();  
         //保存兑换后的USDT余额
         action(
           permission_level{operate_account, "active"_n},
           name(get_self()), 
           "savebalance"_n, 
-          std::make_tuple(ones_pair.token2.address,ones_pair.token2.symbol.code())
+          std::make_tuple(alcorswap_pair.pool2.contract,alcorswap_pair.pool2.quantity.symbol.code())
         ).send();
         //把USDT换成EOS  
         action(
           permission_level{operate_account, "active"_n},
           name(get_self()), 
-          "exboxsell"_n, 
-          std::make_tuple(ones_pair.token2.address,before,std::string("swap,0,")+std::to_string(defibox_id))
+          "exswapboxsell"_n, 
+          std::make_tuple(alcorswap_pair.pool2.contract,before,std::string("swap,0,")+std::to_string(defibox_id))
         ).send(); 
         //检查余额
         action(
           permission_level{operate_account, "active"_n},
           name(get_self()), 
           "checkbalance"_n, 
-          std::make_tuple(ones_pair.token1.address,ones_pair.token1.symbol.code(),profit)
+          std::make_tuple(alcorswap_pair.pool1.contract,alcorswap_pair.pool1.quantity.symbol.code(),profit)
         ).send();
       }
     }
