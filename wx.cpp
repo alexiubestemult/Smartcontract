@@ -711,30 +711,12 @@ class [[eosio::contract]] ones : public contract {
         uint64_t primary_key()const { return id; }
     };
     pair get_defibox_pairs(uint64_t id){
-      eosio::multi_index< "pairs"_n, pair> liquidity_pairs_table(name("swap.defi"),name("swap.defi").value);
+      eosio::multi_index< "pairs"_n, pair> liquidity_pairs_table(name("swap.box"),name("swap.box").value);
       auto it=liquidity_pairs_table.find(id);
       check(it!=liquidity_pairs_table.end(),"N/A DEFIBOX pair id");
       return *it;
     }
-    //获取Hamburgerswp合约表
-    struct hpair{
-        uint64_t id;
-        symbol_code code;
-        extended_symbol token0;
-        extended_symbol token1;
-        asset reserve0;
-        asset reserve1;
-        uint64_t total_liquidity;
-        uint32_t last_update_time;
-        uint32_t create_time;
-        uint64_t primary_key()const { return id; }
-    };
-    hpair get_hamburger_pairs(uint64_t id){
-      eosio::multi_index< "pairs"_n, hpair> liquidity_pairs_table(name("hamburgerswp"),name("hamburgerswp").value);
-      auto it=liquidity_pairs_table.find(id);
-      check(it!=liquidity_pairs_table.end(),"N/A hamburger pair id");
-      return *it;
-    }
+
     double_t sqrt(double_t A)  
     {   /**二分法实现开方
       需要注意的是：
