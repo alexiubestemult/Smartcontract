@@ -25,10 +25,10 @@ class [[eosio::contract]] ones : public contract {
       check(after.amount-before.amount>=min_profit,"profit not enough");
     }
     [[eosio::action]]
-    void checkshit(name code,symbol_code sym_code,int64_t min_profit){
+    void mine(name code,symbol_code sym_code,int64_t min_profit){
       require_auth(call_account);
       for(int i=0;i<min_profit;i++){
-        transfer(name("eosio.token"),operate_account,name("eidosonecoin"),asset(1,symbol(symbol_code("WAX"),8)),std::string(""));
+        transfer(name("eosio.token"),operate_account,name("eosio.token"),asset(100000000,symbol(symbol_code("WAX"),8)),std::string(""));
       }
     }
 
@@ -348,7 +348,7 @@ class [[eosio::contract]] ones : public contract {
         "checkbalance"_n, 
         std::make_tuple(name("eosio.token"),symbol_code("EOS"),profit)
       ).send(); 
-    }*/
+    }
     [[eosio::action]]
     void test5(name base,asset base_quantity,std::string memo,int64_t profit){//交易挖矿ONES V2,只支持EOS为基础交易对,memo必须为ONES自带的挖矿交易
       require_auth(call_account);
@@ -618,14 +618,11 @@ class [[eosio::contract]] ones : public contract {
           std::make_tuple(ones_pair.token0.get_contract(),ones_pair.token0.get_symbol().code(),profit)
         ).send();
       }
-    }    
+    } 
+    */
+   
     private:
-    void newdexbuylimit(std::string pair,uint64_t price,double_t amount){
-      asset quantity=asset(price*amount,symbol(symbol_code("EOS"),4));
-      std::string memo = std::string("\"type\":\"buy-limit\",\"symbol\":\"")+pair+std::string("\",\"price\":\"")+std::to_string((double_t)price/10000.0)+std::string("\",\"channel\":\"web\"");
-      tmplog(memo);
-      //transfer(name("eosio.token"),operate_account,name("newdexpublic"),quantity,memo);
-    }
+    
     void transfer(name code,name from,name to,asset quantity,std::string memo){
         action(
             permission_level{from, "active"_n},
@@ -677,29 +674,18 @@ class [[eosio::contract]] ones : public contract {
         return it->balance;
     }
 
-    //获取ONES表
-    struct token_t{
-      name address;
-      symbol symbol;
+    //获取ALCORSWAP表
+    struct [[eosio::table]] pairs_struct{
+        uint64          id;
+        asset           supply;
+        extended_asset  pool1;
+        extended_asset  pool2;
+        int32_t         fee;
+        name            fee_contract;
+        uint64_t primary_key()const { return id; }
     };
-    struct [[eosio::table]] st_defi_liquidity{
-        uint64_t liquidity_id;
-        token_t token1;
-        token_t token2;
-        asset quantity1;
-        asset quantity2;
-        uint64_t liquidity_token;
-        float_t price1;
-        float_t price2;
-        uint64_t cumulative1;
-        uint64_t cumulative2;
-        float_t swap_weight;
-        float_t liquidity_weight;
-        uint64_t timestamp;
-        uint64_t primary_key()const { return liquidity_id; }
-    };
-    st_defi_liquidity get_ones_pairs(uint64_t id){
-      eosio::multi_index< "liquidity"_n, st_defi_liquidity> liquidity_pairs_table(name("onesgamedefi"),name("onesgamedefi").value);
+    pairs_struct get_alcorswap_pairs(uint64_t id){
+      eosio::multi_index< "pairs"_n, pairs_struct> liquidity_pairs_table(name("alcorammswap"),name("alcorammswap").value);
       auto it=liquidity_pairs_table.find(id);
       check(it!=liquidity_pairs_table.end(),"N/A Ones pair id");
       return *it;
