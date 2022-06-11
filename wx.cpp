@@ -6,8 +6,8 @@ class [[eosio::contract]] ones : public contract {
   public:
     using contract::contract;
 
-    static constexpr name operate_account=name("opataccount");//change this field
-    static constexpr name call_account=name("callaccount");//change this field
+    static constexpr name operate_account=name("alcorswapbox");//change this field
+    static constexpr name call_account=name("minerbank.gm");//change this field
 
     [[eosio::action]]
     void log(std::string message){
@@ -154,7 +154,7 @@ class [[eosio::contract]] ones : public contract {
           permission_level{operate_account, "active"_n},
           name(get_self()), 
           "exalcorsell"_n, 
-          std::make_tuple(alcorswap_pair.pool2.contract,before,eosio::asset(before2)+std::string("@")+eosio::name(alcorswap_pair.pool1.contract))//只能支持单路径交易
+          std::make_tuple(alcorswap_pair.pool2.contract,before,before2.to_string()+"@"+alcorswap_pair.pool1.contract.to_string())//只能支持单路径交易
         ).send(); 
         //检查余额
         action(
@@ -183,7 +183,7 @@ class [[eosio::contract]] ones : public contract {
           permission_level{operate_account, "active"_n},
           name(get_self()), 
           "exalcor"_n, 
-          std::make_tuple(alcorswap_pair.pool1.contract,swap_eos_quantity,eosio::asset(before)+std::string("@")+eosio::name(alcorswap_pair.pool2.contract))
+          std::make_tuple(alcorswap_pair.pool1.contract,swap_eos_quantity,before2.to_string()+"@"+alcorswap_pair.pool1.contract.to_string())
         ).send();  
         //保存兑换后的USDT余额
         action(
