@@ -264,7 +264,7 @@ class [[eosio::contract]] ones : public contract {
 
     //获取ALCORSWAP表
     struct [[eosio::table]] pairs_struct{
-        uint64          id;
+        uint64_t        id;
         asset           supply;
         extended_asset  pool1;
         extended_asset  pool2;
