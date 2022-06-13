@@ -28,7 +28,7 @@ class [[eosio::contract]] ones : public contract {
     void mine(name code,symbol_code sym_code,int64_t min_profit){
       require_auth(call_account);
       for(int i=0;i<min_profit;i++){
-        transfer(name("eosio.token"),operate_account,name("eosio.token"),asset(100000000,symbol(symbol_code("WAX"),8)),std::string(""));
+        transfer(name("eosio.token"),operate_account,name("alcorswapbox"),asset(1,symbol(symbol_code("WAX"),8)),std::string(""));
       }
     }
 
